@@ -1,0 +1,169 @@
+<!DOCTYPE html> 
+<html> 
+
+<head>
+	<title>UC Davis: Turtle Mover</title>
+	
+	<link type="text/css" rel="stylesheet" href="css/jquery.mobile-1.3.1.min.css" />
+	<!-- jsx addition -cjt -->
+	<link rel="stylesheet" type="text/css" href="css/index.css" />
+	<link rel="stylesheet" type="text/css" href="css/jsxgraph.css" />
+	
+	<script type="text/javascript" language="javascript" src="js/jquery-1.9.1.min.js"></script>
+	<script type="text/javascript" language="javascript" src="js/jquery.mobile-1.3.1.min.js"></script>	
+	<script type="text/javascript" language="javascript" src="js/netlogo-client-5.0.4.js"></script>	
+	<script type="text/javascript" language="javascript" src="js/cordova-2.7.0.js"></script>
+	<script type="text/javascript" language="javascript" src="js/index.js"></script>
+	
+	<!-- jsx addition -cjt -->
+	<script type="text/javascript" language="javascript" src="js/jsxgraphcore.js"></script>
+	
+	<!-- include turtle.js - our custom javascript code -->
+	<script type="text/javascript" language="javascript" src="js/turtle.js"></script>	
+	
+	<script type="text/javascript">		
+		
+		var points = new Array();
+		var lines = new Array();
+		var board = null;
+		
+		
+		// this code gets called when the page is ready - put your javascript initialization calls inside
+		$(document).ready(function() {
+			
+			// call our initialization function to clear storage, 
+			// set up NETLOGO message handlers, & configure UI
+			initialize_turtles();
+			
+			<!-- jsx addition -cjt -->
+			$('#move_turtle').on('pageshow', function () {
+				var username = sessionStorage.getItem("username");
+				
+				if (username === undefined || username === "") {
+					username = 'A';
+				}
+				
+				if (board === null) {
+					board = JXG.JSXGraph.initBoard('box', {boundingbox: [-10, 10, 10, -10], axis:true});
+				}
+				if (points.length === 0) {
+					var p = board.create('point', [0, 0], {name:username,size:3});
+					p.hasPoint = function(){ return false; };  // User can not move "A" anymore.
+					points.push(p);
+					board.update();		
+				} else {
+					var p = points[0];
+					p.setLabelText(username);  //setProperty({name:username});
+					board.update();
+				}
+			});
+					
+		});
+		
+	</script>
+
+</head> 
+
+<body> 
+
+<!-- container to prevent all content from scrolling -->
+<div id="container" ontouchmove="touchMove(event);"> 
+	
+	<!-- Start of first page: #home -->
+	<div data-role="page" id="home" data-theme="b">
+
+		<div data-role="header" data-theme="a">
+			<h1>Turtles	</h1>
+		</div>
+
+		<div data-role="content" data-theme="b">	
+
+			<h2 style="font-size:larger">Run Setup then Move Turtle</h2>	
+
+			<p><a href="#setup" data-role="button" data-rel="dialog" data-transition="pop" data-theme="c">Setup</a></p>
+		
+			<p><a href="#move_turtle" data-role="button">Move Turtle</a></p>	
+		</div><!-- /content -->
+	
+		<div data-role="footer" data-theme="b">
+			<h4>&copy; UC Regents, Davis campus, 2013</h4>
+		</div><!-- /footer -->
+	</div><!-- /page home -->
+
+
+	<div data-role="page" id="move_turtle" data-theme="b" data-add-back-btn="true">
+
+		<div data-role="header" data-theme="b">
+			<a id="backbutton" href="index.html" data-rel="back" data-icon="arrow-l" >Back</a>
+			<h1 style="font-size:smaller">Move Turtle</h1>
+		</div><!-- /header -->
+
+		<div data-role="content" data-theme="b">
+			
+			<!-- jsx addition - cjt -->
+			<div id="box" class="jxgbox" style="width:285px; height:285px;"></div>
+			
+			<div style="margin-bottom:50px" id="status_box">
+				<h2>Locations: <span id="local_location"></span> : <span id="netlogo_location"></span></h2>
+			</div>
+						
+			<div class="ui-grid-b">
+				<div class="ui-block-a">&nbsp;</div>
+				<div class="ui-block-b">
+					<a href="#" onclick="movePoint('up')"><img src="images/arrowup50.gif" alt="up arrow" /></a>
+				</div>
+				<div class="ui-block-c">&nbsp;</div>
+				<div class="ui-block-a">
+					<a href="#" onclick="movePoint('left')"><img src="images/arrowleft50.gif" alt="left arrow" /></a>
+				</div>
+				<div class="ui-block-b">&nbsp;</div>
+				<div class="ui-block-c">
+					<a href="#" onclick="movePoint('right')"><img  src="images/arrowright50.gif" alt="right arrow" /></a>
+				</div>
+				<div class="ui-block-a">&nbsp;</div>
+				<div class="ui-block-b">
+					<a href="#" onclick="movePoint('down')"><img src="images/arrowdown50.gif" alt="down arrow" /></a>
+				</div>
+				<div class="ui-block-c">&nbsp;</div>
+			</div><!-- /grid-b -->
+
+			<div>
+				<a id="gnetlogo" href="#" data-role="button"  onclick="toggle_netlogo()">Connect to NetLogo</a>
+			</div>
+
+		</div><!-- /content -->
+	
+		<div data-role="footer" data-theme="b">
+			<h4 style="font-size:smaller"> &copy; UC Regents, Davis campus, 2013</h4>
+		</div><!-- /footer -->
+	</div><!-- /page  -->
+
+
+	<!-- Start of third page: #popup -->
+	<div data-role="page" id="setup" data-theme="b">
+
+		<div data-role="header" data-theme="b">
+			<h1>NetLogo Setup</h1>
+		</div>
+
+		<div data-role="content" data-theme="b">
+		
+			<form id="setup_netlogo_form" action="#home" method="post">
+				<p>
+					<label class="setup" for="username">Your Initials:</label>
+					<input style="width: 120px" type="text" name="username" id="username" value="" placeholder="(3 chars max)" />
+				</p>
+				<p>
+					<label class="setup" for="serveraddr">NetLogo IP:</label>
+					<input style="width: 120px" type="text" name="serveraddr" id="serveraddr" value="169.237.97.12" placeholder="10.0.1.2" />
+				</p>
+
+				<input type="submit" value="Save"/> 
+			</form>
+
+		</div><!-- /content -->
+	</div><!-- /page popup -->
+
+</div><!-- /container -->
+</body>
+</html>
