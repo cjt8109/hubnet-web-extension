@@ -1,4 +1,4 @@
-organization := "com.example"
+organization := "edu.ucdavis"
 
 name := "hubnet-web"
 
